@@ -11,7 +11,7 @@ const jws = require('jws');
 const mocha = require('mocha');
 const WebPushConstants = require('../src/web-push-constants.js');
 
-suite('sendNotification', function() {
+suite('sendNotification', async function() {
   let sendNotification;
   let setGCMAPIKey;
   let setVapidDetails;
@@ -72,7 +72,11 @@ suite('sendNotification', function() {
     auth: userAuth.toString('base64url')
   };
 
-  const vapidKeys = require('../src/vapid-helper').generateVAPIDKeys();
+  // const vapidKeys = require('../src/vapid-helper').generateVAPIDKeys();
+  const vapidKeys = {
+    publicKey: 'BLs5G0w68u2Nq37fJyXeHFfjXaSUNMlQQy2JBPO5tY8xr1XUAj5tumnIL7etTljoLyzVIULPy94Ax6X8V4ldSxs',
+    privateKey: 'dIu1sfsAKyDdLrTdc25sKiMck5I389qdSgB2-UINcaM'
+  };
 
   function startServer() {
     const options = {

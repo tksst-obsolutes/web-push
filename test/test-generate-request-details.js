@@ -7,7 +7,7 @@ const jws = require('jws');
 const urlParse = require('url').parse;
 const https = require('https');
 
-suite('Test Generate Request Details', function() {
+suite('Test Generate Request Details', async function() {
   test('is defined', function() {
     assert(generateRequestDetails);
   });
@@ -15,7 +15,7 @@ suite('Test Generate Request Details', function() {
   const userCurve = crypto.createECDH('prime256v1');
   const userPublicKey = userCurve.generateKeys();
   const userAuth = crypto.randomBytes(16);
-  const vapidKeys = require('../src/vapid-helper').generateVAPIDKeys();
+  const vapidKeys = await require('../src/vapid-helper').generateVAPIDKeys();
 
   const VALID_KEYS = {
     p256dh: userPublicKey.toString('base64url'),

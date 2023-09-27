@@ -41,8 +41,8 @@ const printUsageDetails = () => {
   process.exit(1);
 };
 
-const generateVapidKeys = returnJson => {
-  const vapidKeys = webPush.generateVAPIDKeys();
+const generateVapidKeys = async returnJson => {
+  const vapidKeys = await webPush.generateVAPIDKeys();
 
   let outputText;
   if (returnJson) {
@@ -123,7 +123,7 @@ switch (action) {
     sendNotification(argv);
     break;
   case 'generate-vapid-keys':
-    generateVapidKeys(argv.json || false);
+    (async ()=>{ generateVapidKeys(argv.json || false); })();
     break;
   default:
     printUsageDetails();

@@ -37,8 +37,8 @@ suite('Test Vapid Helpers', function() {
     assert(webPush.getVapidHeaders);
   });
 
-  test('generate vapid keys', function() {
-    const keys = webPush.generateVAPIDKeys();
+  test('generate vapid keys', async function() {
+    const keys = await webPush.generateVAPIDKeys();
     assert(keys.privateKey);
     assert(keys.publicKey);
 
@@ -49,7 +49,7 @@ suite('Test Vapid Helpers', function() {
     assert.equal(Buffer.from(keys.publicKey, 'base64url').length, 65);
   });
 
-  test('generate vapid keys with padding', function() {
+  test('generate vapid keys with padding', async function() {
     sandbox.stub(crypto, 'createECDH').callsFake(() => {
       return {
         generateKeys: () => {},
@@ -58,7 +58,7 @@ suite('Test Vapid Helpers', function() {
       };
     });
 
-    const keys = webPush.generateVAPIDKeys();
+    const keys = await webPush.generateVAPIDKeys();
     assert(keys.privateKey);
     assert(keys.publicKey);
 
@@ -69,12 +69,12 @@ suite('Test Vapid Helpers', function() {
     assert.equal(Buffer.from(keys.publicKey, 'base64url').length, 65);
   });
 
-  test('generate new vapid keys between calls', function() {
-    const keys = webPush.generateVAPIDKeys();
+  test('generate new vapid keys between calls', async function() {
+    const keys = await webPush.generateVAPIDKeys();
     assert(keys.privateKey);
     assert(keys.publicKey);
 
-    const secondKeys = webPush.generateVAPIDKeys();
+    const secondKeys = await webPush.generateVAPIDKeys();
     assert.notEqual(keys.privateKey, secondKeys.privateKey);
     assert.notEqual(keys.publicKey, secondKeys.publicKey);
   });

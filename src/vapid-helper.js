@@ -1,11 +1,22 @@
 'use strict';
 
-const crypto = require('crypto');
 const asn1 = require('asn1.js');
 const jws = require('jws');
 
 const WebPushConstants = require('./web-push-constants.js');
 const urlBase64Helper = require('./urlsafe-base64-helper');
+
+const { subtle } = typeof window !== 'undefined' ? globalThis.crypto : require('node:crypto').webcrypto;
+
+function base64(data) {
+  const x = new Uint8Array(data);
+  const str = String.fromCharCode(...x);
+  return btoa(str);
+}
+
+function base64url(data) {
+  return base64(data).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+}
 
 /**
  * DEFAULT_EXPIRATION is set to seconds in 12 hours
@@ -36,31 +47,20 @@ function toPEM(key) {
   });
 }
 
-function generateVAPIDKeys() {
-  const curve = crypto.createECDH('prime256v1');
-  curve.generateKeys();
+async function generateVAPIDKeys() {
+  const keyPair = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
 
-  let publicKeyBuffer = curve.getPublicKey();
-  let privateKeyBuffer = curve.getPrivateKey();
+  const pubkey = await subtle.exportKey('raw', keyPair.publicKey);
 
-  // Occassionally the keys will not be padded to the correct lengh resulting
-  // in errors, hence this padding.
-  // See https://github.com/web-push-libs/web-push/issues/295 for history.
-  if (privateKeyBuffer.length < 32) {
-    const padding = Buffer.alloc(32 - privateKeyBuffer.length);
-    padding.fill(0);
-    privateKeyBuffer = Buffer.concat([padding, privateKeyBuffer]);
-  }
+  const jwk = await subtle.exportKey('jwk', keyPair.privateKey);
 
-  if (publicKeyBuffer.length < 65) {
-    const padding = Buffer.alloc(65 - publicKeyBuffer.length);
-    padding.fill(0);
-    publicKeyBuffer = Buffer.concat([padding, publicKeyBuffer]);
+  if (jwk.d === undefined) {
+      throw new Error('This should never happen');
   }
 
   return {
-    publicKey: publicKeyBuffer.toString('base64url'),
-    privateKey: privateKeyBuffer.toString('base64url')
+      publicKey: base64url(pubkey),
+      privateKey: jwk.d
   };
 }
 

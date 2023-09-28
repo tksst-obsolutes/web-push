@@ -1,6 +1,6 @@
 'use strict';
 
-const crypto = require('crypto');
+const createECDH = require('create-ecdh');
 const asn1 = require('asn1.js');
 const jws = require('jws');
 
@@ -37,7 +37,7 @@ function toPEM(key) {
 }
 
 function generateVAPIDKeys() {
-  const curve = crypto.createECDH('prime256v1');
+  const curve = createECDH('prime256v1');
   curve.generateKeys();
 
   let publicKeyBuffer = curve.getPublicKey();

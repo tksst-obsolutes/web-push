@@ -1,6 +1,9 @@
 'use strict';
 
-const crypto = require('crypto');
+// eslint-disable-next-line no-var
+var Buffer = require('./buffer');
+const createECDH = require('create-ecdh');
+const { randomBytes } = require('crypto');
 const ece = require('http_ece');
 
 const encrypt = function(userPublicKey, userAuth, payload, contentEncoding) {
@@ -37,10 +40,10 @@ const encrypt = function(userPublicKey, userAuth, payload, contentEncoding) {
     payload = Buffer.from(payload);
   }
 
-  const localCurve = crypto.createECDH('prime256v1');
+  const localCurve = createECDH('prime256v1');
   const localPublicKey = localCurve.generateKeys();
 
-  const salt = crypto.randomBytes(16).toString('base64url');
+  const salt = randomBytes(16).toString('base64url');
 
   const cipherText = ece.encrypt(payload, {
     version: contentEncoding,

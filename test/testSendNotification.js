@@ -1,5 +1,7 @@
 'use strict';
 
+// eslint-disable-next-line no-var
+var Buffer = require('../src/buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 const https = require('https');
@@ -64,8 +66,8 @@ suite('sendNotification', function() {
 
   const userCurve = crypto.createECDH('prime256v1');
 
-  const userPublicKey = userCurve.generateKeys();
-  const userAuth = crypto.randomBytes(16);
+  const userPublicKey = Buffer.from(userCurve.generateKeys());
+  const userAuth = Buffer.from(crypto.randomBytes(16));
 
   const VALID_KEYS = {
     p256dh: userPublicKey.toString('base64url'),

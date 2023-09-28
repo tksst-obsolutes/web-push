@@ -1,5 +1,7 @@
 'use strict';
 
+// eslint-disable-next-line no-var
+var Buffer = require('../src/buffer');
 const assert = require('assert');
 const crypto = require('crypto');
 const webPush = require('../src/index');

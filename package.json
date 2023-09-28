@@ -35,7 +35,8 @@
     "http_ece": "file:../encrypted-content-encoding/nodejs",
     "https-proxy-agent": "^7.0.0",
     "jws": "^4.0.0",
-    "minimist": "^1.2.5"
+    "minimist": "^1.2.5",
+    "undici": "^5.25.2"
   },
   "devDependencies": {
     "chromedriver": "116.0.0",

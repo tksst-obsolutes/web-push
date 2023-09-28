@@ -242,7 +242,7 @@ WebPushLib.prototype.generateRequestDetails = function(subscription, payload, op
       const encrypted = encryptionHelper
         .encrypt(subscription.keys.p256dh, subscription.keys.auth, payload, contentEncoding);
 
-      requestDetails.headers['Content-Length'] = encrypted.cipherText.length;
+      // requestDetails.headers['Content-Length'] = encrypted.cipherText.length;
       requestDetails.headers['Content-Type'] = 'application/octet-stream';
 
       if (contentEncoding === webPushConstants.supportedContentEncodings.AES_128_GCM) {
@@ -255,7 +255,7 @@ WebPushLib.prototype.generateRequestDetails = function(subscription, payload, op
 
       requestPayload = encrypted.cipherText;
     } else {
-      requestDetails.headers['Content-Length'] = 0;
+      // requestDetails.headers['Content-Length'] = 0;
     }
 
     const isGCM = subscription.endpoint.startsWith('https://android.googleapis.com/gcm/send');
@@ -338,41 +338,42 @@ function convertHeaders(fetchHeaders) {
  * resolves if the sending of the notification was successful, otherwise it
  * rejects.
  */
-WebPushLib.prototype.sendNotification = function(subscription, payload, options) {
-    let requestDetails;
+WebPushLib.prototype.sendNotification = async function(subscription, payload, options) {
+    const requestDetails = this.generateRequestDetails(subscription, payload, options);
+
+    const urlParts = new URL(requestDetails.endpoint);
+
     try {
-      requestDetails = this.generateRequestDetails(subscription, payload, options);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-
-    return new Promise(function(resolve, reject) {
-      const urlParts = new URL(requestDetails.endpoint);
-
-      fetch(urlParts, {
+      const response = await fetch(urlParts, {
         method: requestDetails.method,
         headers: new Headers(requestDetails.headers),
         body: requestDetails.body
-      }).then(response => {
-        if (response.status < 200 || response.status >= 300) {
-          reject(new WebPushError(
-            'Received unexpected response code',
-            response.status,
-            convertHeaders(response.headers),
-            response.text(),
-            requestDetails.endpoint
-));
-        }
-
-        resolve({
-          statusCode: response.status,
-          body: response.text(),
-          headers: convertHeaders(response.headers)
-        });
-      }).catch(e => {
-        reject(e);
       });
-    });
+
+      if (response.status < 200 || response.status >= 300) {
+        console.log(JSON.stringify(requestDetails.headers, null, '  '));
+        const body = await response.text();
+        console.log(body);
+        throw new WebPushError(
+          `Received unexpected response code: ${response.status}`,
+          response.status,
+          convertHeaders(response.headers),
+          body,
+          requestDetails.endpoint
+        );
+      }
+
+      return {
+        statusCode: response.status,
+        body: await response.text(),
+        headers: convertHeaders(response.headers)
+      };
+    } catch (e) {
+      if (e instanceof TypeError && 'cause' in e) {
+        throw e.cause;
+      }
+      throw e;
+    }
   };
 
 module.exports = WebPushLib;

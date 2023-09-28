@@ -1,5 +1,6 @@
 'use strict';
 
+const { Agent, setGlobalDispatcher } = require('undici');
 // eslint-disable-next-line no-var
 var Buffer = require('../src/buffer');
 const assert = require('assert');
@@ -40,6 +41,12 @@ suite('sendNotification', function() {
     options.rejectUnauthorized = false;
     return originalHTTPSRequest.call(https, options, listener);
   };
+
+  setGlobalDispatcher(new Agent({
+    connect: {
+      rejectUnauthorized: false
+    }
+  }));
 
   mocha.beforeEach(function() {
     requestBody = null;

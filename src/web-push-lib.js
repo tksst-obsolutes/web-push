@@ -320,6 +320,10 @@ WebPushLib.prototype.generateRequestDetails = function(subscription, payload, op
     return requestDetails;
   };
 
+function convertHeaders(fetchHeaders) {
+  return Object.fromEntries(fetchHeaders.entries());
+}
+
 /**
  * To send a push notification call this method with a subscription, optional
  * payload and any options.
@@ -343,69 +347,31 @@ WebPushLib.prototype.sendNotification = function(subscription, payload, options)
     }
 
     return new Promise(function(resolve, reject) {
-      const httpsOptions = {};
       const urlParts = new URL(requestDetails.endpoint);
-      httpsOptions.hostname = urlParts.hostname;
-      httpsOptions.port = urlParts.port;
-      httpsOptions.path = urlParts.pathname + urlParts.search;
 
-      httpsOptions.headers = requestDetails.headers;
-      httpsOptions.method = requestDetails.method;
+      fetch(urlParts, {
+        method: requestDetails.method,
+        headers: new Headers(requestDetails.headers),
+        body: requestDetails.body
+      }).then(response => {
+        if (response.status < 200 || response.status >= 300) {
+          reject(new WebPushError(
+            'Received unexpected response code',
+            response.status,
+            convertHeaders(response.headers),
+            response.text(),
+            requestDetails.endpoint
+));
+        }
 
-      if (requestDetails.timeout) {
-        httpsOptions.timeout = requestDetails.timeout;
-      }
-
-      if (requestDetails.agent) {
-        httpsOptions.agent = requestDetails.agent;
-      }
-
-      if (requestDetails.proxy) {
-        const { HttpsProxyAgent } = require('https-proxy-agent'); // eslint-disable-line global-require
-        httpsOptions.agent = new HttpsProxyAgent(requestDetails.proxy);
-      }
-
-      const pushRequest = https.request(httpsOptions, function(pushResponse) {
-        let responseText = '';
-
-        pushResponse.on('data', function(chunk) {
-          responseText += chunk;
+        resolve({
+          statusCode: response.status,
+          body: response.text(),
+          headers: convertHeaders(response.headers)
         });
-
-        pushResponse.on('end', function() {
-          if (pushResponse.statusCode < 200 || pushResponse.statusCode > 299) {
-            reject(new WebPushError(
-              'Received unexpected response code',
-              pushResponse.statusCode,
-              pushResponse.headers,
-              responseText,
-              requestDetails.endpoint
-            ));
-          } else {
-            resolve({
-              statusCode: pushResponse.statusCode,
-              body: responseText,
-              headers: pushResponse.headers
-            });
-          }
-        });
-      });
-
-      if (requestDetails.timeout) {
-        pushRequest.on('timeout', function() {
-          pushRequest.destroy(new Error('Socket timeout'));
-        });
-      }
-
-      pushRequest.on('error', function(e) {
+      }).catch(e => {
         reject(e);
       });
-
-      if (requestDetails.body) {
-        pushRequest.write(requestDetails.body);
-      }
-
-      pushRequest.end();
     });
   };
 

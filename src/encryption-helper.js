@@ -3,8 +3,9 @@
 // eslint-disable-next-line no-var
 var Buffer = require('./buffer');
 const createECDH = require('create-ecdh');
-const { randomBytes } = require('crypto');
 const ece = require('http_ece');
+// eslint-disable-next-line no-undef
+const crypto = typeof window !== 'undefined' ? globalThis.crypto : require('node:crypto').webcrypto;
 
 const encrypt = function(userPublicKey, userAuth, payload, contentEncoding) {
   if (!userPublicKey) {
@@ -43,7 +44,7 @@ const encrypt = function(userPublicKey, userAuth, payload, contentEncoding) {
   const localCurve = createECDH('prime256v1');
   const localPublicKey = localCurve.generateKeys();
 
-  const salt = randomBytes(16).toString('base64url');
+  const salt = crypto.getRandomValues(Buffer.allocUnsafe(16)).toString('base64url');
 
   const cipherText = ece.encrypt(payload, {
     version: contentEncoding,

@@ -14,6 +14,8 @@ const jws = require('jws');
 const mocha = require('mocha');
 const WebPushConstants = require('../src/web-push-constants.js');
 
+const originalFetch = fetch;
+
 suite('sendNotification', function() {
   let sendNotification;
   let setGCMAPIKey;
@@ -58,6 +60,9 @@ suite('sendNotification', function() {
 
     // Reset https request mock
     https.request = certHTTPSRequest;
+
+    // eslint-disable-next-line no-global-assign
+    fetch = originalFetch;
 
     let returnPromise = Promise.resolve();
     if (!server) {
@@ -584,6 +589,11 @@ suite('sendNotification', function() {
         options.path = '/';
 
         return certHTTPSRequest.call(https, options, listener);
+      };
+
+      // eslint-disable-next-line no-global-assign
+      fetch = (url, options) => {
+        return originalFetch(`https://127.0.0.1:${serverPort}/`, options);
       };
 
       // Set the default endpoint if it's not already configured

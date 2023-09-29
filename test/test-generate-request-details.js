@@ -354,19 +354,4 @@ suite('Test Generate Request Details', function() {
     );
     assert.equal(details.proxy, extraOptions.proxy);
   });
-
-  test('Agent option as an https.Agent instance', function() {
-    let subscription = {
-      endpoint: 'https://127.0.0.1:8080'
-    };
-    let extraOptions = {
-      agent: new https.Agent({ keepAlive: true })
-    };
-    let details = generateRequestDetails(
-      subscription,
-      null,
-      extraOptions
-    );
-    assert.equal(details.agent, extraOptions.agent);
-  });
 });

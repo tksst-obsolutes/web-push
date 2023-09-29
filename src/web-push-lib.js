@@ -1,7 +1,5 @@
 'use strict';
 
-const https = require('https');
-
 const WebPushError = require('./web-push-error.js');
 const vapidHelper = require('./vapid-helper.js');
 const encryptionHelper = require('./encryption-helper.js');
@@ -206,18 +204,6 @@ WebPushLib.prototype.generateRequestDetails = function(subscription, payload, op
         }
       }
 
-      if (options.agent) {
-        if (options.agent instanceof https.Agent) {
-          if (proxy) {
-            console.warn('Agent option will be ignored because proxy option is defined.');
-          }
-
-          agent = options.agent;
-        } else {
-          console.warn('Wrong type for the agent option, it should be an instance of https.Agent.');
-        }
-      }
-
       if (typeof options.timeout === 'number') {
         timeout = options.timeout;
       }
@@ -351,14 +337,11 @@ WebPushLib.prototype.sendNotification = async function(subscription, payload, op
       });
 
       if (response.status < 200 || response.status >= 300) {
-        console.log(JSON.stringify(requestDetails.headers, null, '  '));
-        const body = await response.text();
-        console.log(body);
         throw new WebPushError(
           `Received unexpected response code: ${response.status}`,
           response.status,
           convertHeaders(response.headers),
-          body,
+          await response.text(),
           requestDetails.endpoint
         );
       }

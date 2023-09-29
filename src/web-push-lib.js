@@ -228,7 +228,6 @@ WebPushLib.prototype.generateRequestDetails = function(subscription, payload, op
       const encrypted = encryptionHelper
         .encrypt(subscription.keys.p256dh, subscription.keys.auth, payload, contentEncoding);
 
-      // requestDetails.headers['Content-Length'] = encrypted.cipherText.length;
       requestDetails.headers['Content-Type'] = 'application/octet-stream';
 
       if (contentEncoding === webPushConstants.supportedContentEncodings.AES_128_GCM) {
@@ -240,8 +239,6 @@ WebPushLib.prototype.generateRequestDetails = function(subscription, payload, op
       }
 
       requestPayload = encrypted.cipherText;
-    } else {
-      // requestDetails.headers['Content-Length'] = 0;
     }
 
     const isGCM = subscription.endpoint.startsWith('https://android.googleapis.com/gcm/send');
